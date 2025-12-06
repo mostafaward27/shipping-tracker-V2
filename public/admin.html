@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShipTrack - Admin Dashboard</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/3095/3095104.png">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="container-fluid login-container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-4 col-lg-3">
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-primary text-white text-center py-3">
+                        <h4 class="mb-0">
+                            <i class="bi bi-lock me-2"></i>Admin Login
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="loginForm">
+                            <div class="mb-4">
+                                <label for="username" class="form-label fw-semibold">
+                                    <i class="bi bi-person me-2"></i>Username
+                                </label>
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       id="username" 
+                                       placeholder="Enter username"
+                                       required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="password" class="form-label fw-semibold">
+                                    <i class="bi bi-key me-2"></i>Password
+                                </label>
+                                <input type="password" 
+                                       class="form-control form-control-lg" 
+                                       id="password" 
+                                       placeholder="Enter password"
+                                       required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                                </button>
+                            </div>
+                        </form>
+                        <div id="loginMessage" class="alert d-none mt-3 mb-0"></div>
+                        <div class="text-center mt-4">
+                            <small class="text-muted">
+                                Default credentials: admin / admin123
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="dashboard" class="d-none">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <i class="bi bi-speedometer2 me-2"></i>ShipTrack Admin
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="dashboard.showOrders()">
+                                <i class="bi bi-list-ul me-1"></i>All Orders
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="dashboard.showCreateOrder()">
+                                <i class="bi bi-plus-circle me-1"></i>New Order
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="dashboard.showEditOrder()">
+                                <i class="bi bi-pencil-square me-1"></i>Edit Order
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.html" target="_blank">
+                                <i class="bi bi-eye me-1"></i>View Public Site
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle me-1"></i>
+                                <span id="currentUser">Admin</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#" onclick="dashboard.logout()">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="container-fluid mt-4">
+            <div class="row">
+                <div class="col-12">
+                    <!-- Messages -->
+                    <div id="messageArea" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;"></div>
+
+                    <!-- Orders List -->
+                    <div id="ordersSection" class="d-none">
+                        <div class="card shadow border-0">
+                            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center py-3">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-list-ul me-2"></i>All Shipments
+                                </h5>
+                                <div class="d-flex gap-2">
+                                    <div class="input-group" style="width: 300px;">
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="searchOrders" 
+                                               placeholder="Search by name, phone, or ID">
+                                        <button class="btn btn-light" onclick="dashboard.searchOrders()">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                    <button class="btn btn-light" onclick="dashboard.showCreateOrder()">
+                                        <i class="bi bi-plus-lg"></i> New
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Customer</th>
+                                                <th>Phone</th>
+                                                <th>Destination</th>
+                                                <th>Status</th>
+                                                <th>Created</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="ordersTable">
+                                            <!-- Orders will be loaded here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <nav aria-label="Page navigation" class="mt-4">
+                                    <ul class="pagination justify-content-center" id="pagination">
+                                        <!-- Pagination will be loaded here -->
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Create Order -->
+                    <div id="createOrderSection" class="d-none">
+                        <div class="card shadow border-0">
+                            <div class="card-header bg-success text-white py-3">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-plus-circle me-2"></i>Create New Shipment
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="createOrderForm">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="customerName" class="form-label fw-semibold">Customer Name *</label>
+                                                <input type="text" class="form-control" id="customerName" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="phone" class="form-label fw-semibold">Phone Number *</label>
+                                                <input type="tel" class="form-control" id="phone" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="address" class="form-label fw-semibold">Address *</label>
+                                                <textarea class="form-control" id="address" rows="3" required></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="origin" class="form-label fw-semibold">Origin *</label>
+                                                <input type="text" class="form-control" id="origin" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="destination" class="form-label fw-semibold">Destination *</label>
+                                                <input type="text" class="form-control" id="destination" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="initialStatus" class="form-label fw-semibold">Initial Status</label>
+                                                <select class="form-select" id="initialStatus">
+                                                    <option value="pending">Pending</option>
+                                                    <option value="processing">Processing</option>
+                                                    <option value="shipped">Shipped</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="metadata" class="form-label fw-semibold">Additional Information (JSON)</label>
+                                                <textarea class="form-control" id="metadata" rows="3" 
+                                                          placeholder='{"weight": "5kg", "priority": "normal", "dimensions": "10x10x10"}'></textarea>
+                                                <small class="text-muted">Optional JSON data for additional shipment details</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                        <button type="reset" class="btn btn-secondary me-2">
+                                            <i class="bi bi-x-circle me-1"></i>Clear
+                                        </button>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="bi bi-check-circle me-1"></i>Create Shipment
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Edit Order -->
+                    <div id="editOrderSection" class="d-none">
+                        <div class="card shadow border-0">
+                            <div class="card-header bg-warning text-dark py-3">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-pencil-square me-2"></i>Edit Shipment
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-4">
+                                    <div class="col-md-12">
+                                        <div class="mb-3">
+                                            <label for="editOrderId" class="form-label fw-semibold">Shipment ID *</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="editOrderId" 
+                                                       placeholder="Enter shipment ID">
+                                                <button class="btn btn-primary" onclick="dashboard.loadOrderForEdit()">
+                                                    <i class="bi bi-search"></i> Load Order
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Edit Form (initially hidden) -->
+                                <div id="editForm" class="d-none">
+                                    <form id="editOrderForm">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="editCustomerName" class="form-label fw-semibold">Customer Name *</label>
+                                                    <input type="text" class="form-control" id="editCustomerName" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="editPhone" class="form-label fw-semibold">Phone Number *</label>
+                                                    <input type="tel" class="form-control" id="editPhone" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="editAddress" class="form-label fw-semibold">Address *</label>
+                                                    <textarea class="form-control" id="editAddress" rows="3" required></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="editOrigin" class="form-label fw-semibold">Origin *</label>
+                                                    <input type="text" class="form-control" id="editOrigin" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="editDestination" class="form-label fw-semibold">Destination *</label>
+                                                    <input type="text" class="form-control" id="editDestination" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="editStatus" class="form-label fw-semibold">Current Status</label>
+                                                    <select class="form-select" id="editStatus" required>
+                                                        <option value="pending">Pending</option>
+                                                        <option value="processing">Processing</option>
+                                                        <option value="shipped">Shipped</option>
+                                                        <option value="in_transit">In Transit</option>
+                                                        <option value="out_for_delivery">Out for Delivery</option>
+                                                        <option value="delivered">Delivered</option>
+                                                        <option value="cancelled">Cancelled</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="editMetadata" class="form-label fw-semibold">Additional Information (JSON)</label>
+                                                    <textarea class="form-control" id="editMetadata" rows="3"></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Status Update Section -->
+                                        <div class="card mt-4">
+                                            <div class="card-header bg-light">
+                                                <h6 class="mb-0">
+                                                    <i class="bi bi-clock-history me-2"></i> Update Status (Optional)
+                                                </h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <label for="newStatus" class="form-label">New Status</label>
+                                                            <select class="form-select" id="newStatus">
+                                                                <option value="">Keep Current Status</option>
+                                                                <option value="pending">Pending</option>
+                                                                <option value="processing">Processing</option>
+                                                                <option value="shipped">Shipped</option>
+                                                                <option value="in_transit">In Transit</option>
+                                                                <option value="out_for_delivery">Out for Delivery</option>
+                                                                <option value="delivered">Delivered</option>
+                                                                <option value="cancelled">Cancelled</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <label for="statusNote" class="form-label">Status Note (Optional)</label>
+                                                            <textarea class="form-control" id="statusNote" rows="2" 
+                                                                      placeholder="Reason for status change..."></textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                            <button type="button" class="btn btn-secondary me-2" onclick="dashboard.cancelEdit()">
+                                                <i class="bi bi-x-circle me-1"></i>Cancel
+                                            </button>
+                                            <button type="submit" class="btn btn-warning">
+                                                <i class="bi bi-check-circle me-1"></i>Update Shipment
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
