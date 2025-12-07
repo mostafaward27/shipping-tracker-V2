@@ -4,7 +4,8 @@ const helmet = require('helmet');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 const errorHandler = require('./middleware/errorHandler');
-const path = require('path'); // ← أضف هذا السطر
+const path = require('path');
+const rateLimit = require('express-rate-limit'); // نضيفه هنا
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
@@ -13,9 +14,19 @@ const trackRoutes = require('./routes/trackRoutes');
 
 const app = express();
 
-//Static frontend
-app.use(express.static(path.join(__dirname, '../public')));
+// 1️⃣ Trust proxy
+app.set('trust proxy', 1);
 
+// 2️⃣ Rate limiter خاص بالـ Auth
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 دقيقة
+  max: 100, // أقصى 100 طلب لكل IP
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Static frontend
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Middleware
 app.use(helmet());
@@ -27,7 +38,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes); // هنا بنطبق الـ limiter
 app.use('/api/orders', orderRoutes);
 app.use('/api/track', trackRoutes);
 
