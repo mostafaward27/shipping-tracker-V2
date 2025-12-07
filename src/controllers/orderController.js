@@ -68,15 +68,26 @@ class OrderController {
 
     static async getAllOrders(req, res) {
         try {
-            const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 10;
+            // الحل: تحقق من وجود القيم أولاً
+            const page = req.query.page !== undefined ? req.query.page : 1;
+            const limit = req.query.limit !== undefined ? req.query.limit : 10;
             
+            console.log('Controller - Page:', page, 'Type:', typeof page);
+            console.log('Controller - Limit:', limit, 'Type:', typeof limit);
+            
+            // أرسل القيم كما هي (سلسلة أو رقم) ودع الموديل يتعامل مع التحويل
             const result = await Order.findAll(page, limit);
             res.json(result);
         } catch (error) {
             console.error('Get all orders error:', error);
+            console.error('Error details:', {
+                message: error.message,
+                sql: error.sql,
+                errno: error.errno
+            });
             res.status(500).json({ 
-                error: 'Failed to fetch orders' 
+                error: 'Failed to fetch orders',
+                details: process.env.NODE_ENV === 'development' ? error.message : undefined
             });
         }
     }
@@ -187,8 +198,8 @@ class OrderController {
     static async searchOrders(req, res) {
         try {
             const { q } = req.query;
-            const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 10;
+            const page = req.query.page !== undefined ? req.query.page : 1;
+            const limit = req.query.limit !== undefined ? req.query.limit : 10;
 
             if (!q) {
                 return res.status(400).json({ 
