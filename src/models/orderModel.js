@@ -47,25 +47,33 @@ class Order {
 
     // جلب جميع الطلبات مع Pagination
     static async findAll(page = 1, limit = 10) {
-        page = Number(page);
-        limit = Number(limit);
+        // تحويل القيم إلى أعداد صحيحة
+        page = parseInt(page, 10) || 1;
+        limit = parseInt(limit, 10) || 10;
 
-        if (isNaN(page) || page < 1) page = 1;
-        if (isNaN(limit) || limit < 1) limit = 10;
+        // التأكد من أن القيم صحيحة
+        if (page < 1) page = 1;
+        if (limit < 1) limit = 10;
+        if (limit > 100) limit = 100; // تحديد حد أقصى للحماية
 
         const offset = (page - 1) * limit;
 
+        // استخدام parseInt للتأكد من إرسال أعداد صحيحة
+        const limitInt = parseInt(limit, 10);
+        const offsetInt = parseInt(offset, 10);
+
         const [rows] = await pool.execute(
             'SELECT * FROM orders ORDER BY created_at DESC LIMIT ? OFFSET ?',
-            [limit, offset]
+            [limitInt, offsetInt]
         );
 
         const [countRows] = await pool.execute('SELECT COUNT(*) as total FROM orders');
         return {
             orders: rows,
             total: countRows[0].total,
-            page,
-            limit
+            page: page,
+            limit: limit,
+            totalPages: Math.ceil(countRows[0].total / limit)
         };
     }
 
@@ -129,25 +137,50 @@ class Order {
 
     // البحث عن الطلبات
     static async searchOrders(searchTerm, page = 1, limit = 10) {
-        page = Number(page);
-        limit = Number(limit);
+        // تحويل القيم إلى أعداد صحيحة
+        page = parseInt(page, 10) || 1;
+        limit = parseInt(limit, 10) || 10;
 
-        if (isNaN(page) || page < 1) page = 1;
-        if (isNaN(limit) || limit < 1) limit = 10;
+        // التأكد من أن القيم صحيحة
+        if (page < 1) page = 1;
+        if (limit < 1) limit = 10;
+        if (limit > 100) limit = 100;
 
         const offset = (page - 1) * limit;
 
-        // تأكد أن searchTerm صالح للبحث
+        // استخدام parseInt للتأكد من إرسال أعداد صحيحة
+        const limitInt = parseInt(limit, 10);
+        const offsetInt = parseInt(offset, 10);
+
+        // تحضير شروط البحث
         const term = searchTerm ? `%${searchTerm}%` : '%';
+        
+        // إذا كان searchTerm رقم صالح، استخدمه للبحث بالـ ID
+        let searchId = 0;
+        if (searchTerm && !isNaN(parseInt(searchTerm, 10))) {
+            searchId = parseInt(searchTerm, 10);
+        }
 
         const [rows] = await pool.execute(
             `SELECT * FROM orders 
              WHERE customer_name LIKE ? OR phone LIKE ? OR id = ?
              ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-            [term, term, searchTerm, limit, offset]
+            [term, term, searchId, limitInt, offsetInt]
         );
 
-        return rows;
+        const [countRows] = await pool.execute(
+            `SELECT COUNT(*) as total FROM orders 
+             WHERE customer_name LIKE ? OR phone LIKE ? OR id = ?`,
+            [term, term, searchId]
+        );
+
+        return {
+            orders: rows,
+            total: countRows[0].total,
+            page: page,
+            limit: limit,
+            totalPages: Math.ceil(countRows[0].total / limit)
+        };
     }
 }
 
