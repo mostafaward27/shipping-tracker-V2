@@ -1,11 +1,12 @@
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/adminModel');
+const bcrypt = require('bcryptjs');
+
 
 class AuthController {
     static async login(req, res) {
         try {
             const { username, password } = req.body;
-
             if (!username || !password) {
                 return res.status(400).json({ 
                     error: 'Username and password required' 
@@ -20,6 +21,7 @@ class AuthController {
             }
 
             const validPassword = await Admin.verifyPassword(password, admin.password_hash);
+            console.log('Password verification result:', validPassword);
             if (!validPassword) {
                 return res.status(401).json({ 
                     error: 'Invalid credentials' 
