@@ -21,6 +21,8 @@ class AuthController {
             }
 
             const validPassword = await Admin.verifyPassword(password, admin.password_hash);
+            const hashedPassword = await bcrypt.hash(password, 10)
+            console.log('Hashed password for comparison:', hashedPassword);
             console.log('Password verification result:', validPassword);
             if (!validPassword) {
                 return res.status(401).json({ 
