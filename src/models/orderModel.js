@@ -1,6 +1,7 @@
 const pool = require('../config/database');
 
 class Order {
+    // إنشاء طلب جديد
     static async create(orderData) {
         const {
             customer_name,
@@ -16,11 +17,18 @@ class Order {
             `INSERT INTO orders 
             (customer_name, phone, address, origin, destination, current_status, metadata) 
             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [customer_name, phone, address, origin, destination, current_status, 
-             metadata ? JSON.stringify(metadata) : null]
+            [
+                customer_name,
+                phone,
+                address,
+                origin,
+                destination,
+                current_status,
+                metadata ? JSON.stringify(metadata) : null
+            ]
         );
 
-        // Add initial status to history
+        // إضافة الحالة الأولى للتاريخ
         if (result.insertId) {
             await this.addStatusHistory(result.insertId, current_status, 'Order created');
         }
@@ -28,6 +36,7 @@ class Order {
         return result.insertId;
     }
 
+    // جلب طلب حسب الـ ID
     static async findById(id) {
         const [rows] = await pool.execute(
             'SELECT * FROM orders WHERE id = ?',
@@ -36,12 +45,21 @@ class Order {
         return rows[0];
     }
 
+    // جلب جميع الطلبات مع Pagination
     static async findAll(page = 1, limit = 10) {
+        page = Number(page);
+        limit = Number(limit);
+
+        if (isNaN(page) || page < 1) page = 1;
+        if (isNaN(limit) || limit < 1) limit = 10;
+
         const offset = (page - 1) * limit;
+
         const [rows] = await pool.execute(
             'SELECT * FROM orders ORDER BY created_at DESC LIMIT ? OFFSET ?',
             [limit, offset]
         );
+
         const [countRows] = await pool.execute('SELECT COUNT(*) as total FROM orders');
         return {
             orders: rows,
@@ -51,6 +69,7 @@ class Order {
         };
     }
 
+    // تحديث بيانات طلب
     static async update(id, orderData) {
         const fields = [];
         const values = [];
@@ -71,6 +90,7 @@ class Order {
         return result.affectedRows > 0;
     }
 
+    // تحديث حالة الطلب
     static async updateStatus(id, status, note = '') {
         const [result] = await pool.execute(
             'UPDATE orders SET current_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
@@ -84,6 +104,7 @@ class Order {
         return result.affectedRows > 0;
     }
 
+    // إضافة سجل حالة للطلب
     static async addStatusHistory(orderId, status, note = '') {
         await pool.execute(
             'INSERT INTO order_status_history (order_id, status, note) VALUES (?, ?, ?)',
@@ -91,6 +112,7 @@ class Order {
         );
     }
 
+    // جلب تاريخ الحالات للطلب
     static async getStatusHistory(orderId) {
         const [rows] = await pool.execute(
             'SELECT * FROM order_status_history WHERE order_id = ? ORDER BY changed_at DESC',
@@ -99,19 +121,32 @@ class Order {
         return rows;
     }
 
+    // حذف طلب
     static async delete(id) {
         const [result] = await pool.execute('DELETE FROM orders WHERE id = ?', [id]);
         return result.affectedRows > 0;
     }
 
+    // البحث عن الطلبات
     static async searchOrders(searchTerm, page = 1, limit = 10) {
+        page = Number(page);
+        limit = Number(limit);
+
+        if (isNaN(page) || page < 1) page = 1;
+        if (isNaN(limit) || limit < 1) limit = 10;
+
         const offset = (page - 1) * limit;
+
+        // تأكد أن searchTerm صالح للبحث
+        const term = searchTerm ? `%${searchTerm}%` : '%';
+
         const [rows] = await pool.execute(
             `SELECT * FROM orders 
              WHERE customer_name LIKE ? OR phone LIKE ? OR id = ?
              ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-            [`%${searchTerm}%`, `%${searchTerm}%`, searchTerm, limit, offset]
+            [term, term, searchTerm, limit, offset]
         );
+
         return rows;
     }
 }
